@@ -4,15 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -23,6 +25,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'external_user_id',
+        'jwt_issuer',
+        'subscription_tier',
     ];
 
     /**
@@ -45,6 +50,8 @@ class User extends Authenticatable
         return [
             'owner' => 'boolean',
             'email_verified_at' => 'datetime',
+            'subscription_tier' => 'array',
+            'last_jwt_verified_at' => 'datetime',
         ];
     }
 
@@ -58,9 +65,48 @@ class User extends Authenticatable
         return $this->belongsTo(Account::class);
     }
 
+    public function chats(): HasMany
+    {
+        return $this->hasMany(Chat::class);
+    }
+
+    public function files(): HasMany
+    {
+        return $this->hasMany(File::class);
+    }
+
+    public function vectorEmbeddings(): HasMany
+    {
+        return $this->hasMany(VectorEmbedding::class);
+    }
+
+    public function usageLogs(): HasMany
+    {
+        return $this->hasMany(UsageLog::class);
+    }
+
+    public function createdSuites(): HasMany
+    {
+        return $this->hasMany(Suite::class, 'created_by');
+    }
+
+    public function createdApiConfigs(): HasMany
+    {
+        return $this->hasMany(ExternalApiConfig::class, 'created_by');
+    }
+
+    public function hasSubscriptionTier(string $tier): bool
+    {
+        if (!$this->subscription_tier) {
+            return false;
+        }
+
+        return in_array($tier, (array) $this->subscription_tier);
+    }
+
     public function getNameAttribute()
     {
-        return $this->first_name.' '.$this->last_name;
+        return $this->first_name . ' ' . $this->last_name;
     }
 
     public function setPasswordAttribute($password)
@@ -81,8 +127,10 @@ class User extends Authenticatable
     public function scopeWhereRole($query, $role)
     {
         switch ($role) {
-            case 'user': return $query->where('owner', false);
-            case 'owner': return $query->where('owner', true);
+            case 'user':
+                return $query->where('owner', false);
+            case 'owner':
+                return $query->where('owner', true);
         }
     }
 
@@ -90,9 +138,9 @@ class User extends Authenticatable
     {
         $query->when($filters['search'] ?? null, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->where('first_name', 'like', '%'.$search.'%')
-                    ->orWhere('last_name', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%');
+                $query->where('first_name', 'like', '%' . $search . '%')
+                    ->orWhere('last_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%');
             });
         })->when($filters['role'] ?? null, function ($query, $role) {
             $query->whereRole($role);
