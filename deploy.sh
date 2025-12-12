@@ -104,10 +104,21 @@ echo ""
 echo -e "${GREEN}✅ Deployment completed successfully!${NC}"
 echo ""
 echo "📝 Next steps:"
-echo "   1. Configure your reverse proxy (nginx/apache) to point to port ${APP_PORT:-80}"
+APP_PORT_VALUE=${APP_PORT:-8080}
+echo "   1. Application is running on port: ${APP_PORT_VALUE}"
+if [ "$APP_PORT_VALUE" != "80" ]; then
+    echo "      (Port 80 is likely in use by another service)"
+    echo "      Access at: http://YOUR_SERVER_IP:${APP_PORT_VALUE}"
+    echo ""
+    echo "   2. Configure LiteSpeed/Nginx/Apache as reverse proxy:"
+    echo "      - Point proxy to: http://127.0.0.1:${APP_PORT_VALUE}"
+    echo "      - See LITESPEED_SETUP.md for LiteSpeed configuration"
+else
+    echo "   1. Configure your reverse proxy (nginx/apache) to point to port 80"
+fi
 echo "   2. Set up SSL certificates (Let's Encrypt recommended)"
 echo "   3. Configure your domain DNS to point to this server"
-echo "   4. Access the application at: ${APP_URL:-http://localhost}"
+echo "   4. Update APP_URL in .env file"
 echo ""
 echo "🔧 Useful commands:"
 echo "   - View logs: $DOCKER_COMPOSE -f docker-compose.prod.yml logs -f"
