@@ -119,7 +119,7 @@ echo ""
 echo -e "${GREEN}✅ Deployment completed successfully!${NC}"
 echo ""
 echo "📝 Next steps:"
-APP_PORT_VALUE=${APP_PORT:-8080}
+APP_PORT_VALUE=${APP_PORT:-3000}
 echo "   1. Application is running on port: ${APP_PORT_VALUE}"
 if [ "$APP_PORT_VALUE" != "80" ]; then
     echo "      (Port 80 is likely in use by another service)"

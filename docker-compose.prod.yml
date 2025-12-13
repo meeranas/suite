@@ -12,7 +12,7 @@ services:
     networks:
       - ai_suite_network
     ports:
-      - "${APP_PORT:-8080}:80"
+      - "${APP_PORT:-3000}:80"
     depends_on:
       - db
       - redis
