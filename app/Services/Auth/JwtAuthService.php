@@ -24,20 +24,24 @@ class JwtAuthService
     public function verifyToken(string $token): ?array
     {
         try {
-            // Development mode: If no public key is configured, allow test tokens
+            // If no public key is configured, allow test tokens (base64 encoded JSON)
+            // This works in all environments to allow testing without JWT keys
             if (empty($this->publicKey)) {
-                if (app()->environment(['local', 'testing', 'development'])) {
-                    // Try to decode as a simple test token (base64 encoded JSON)
-                    try {
-                        $decoded = json_decode(base64_decode($token), true);
-                        if ($decoded && isset($decoded['sub'])) {
-                            return $decoded;
+                // Try to decode as a simple test token (base64 encoded JSON)
+                try {
+                    $decoded = json_decode(base64_decode($token), true);
+                    if ($decoded && isset($decoded['sub'])) {
+                        // Check if token is expired
+                        if (isset($decoded['exp']) && $decoded['exp'] < now()->timestamp) {
+                            Log::warning('Test token expired');
+                            return null;
                         }
-                    } catch (Exception $e) {
-                        // Not a test token, continue to normal verification
+                        return $decoded;
                     }
+                } catch (Exception $e) {
+                    // Not a test token, continue to normal verification
                 }
-                Log::warning('JWT public key not configured');
+                Log::warning('JWT public key not configured and token is not a valid test token');
                 return null;
             }
 
@@ -68,19 +72,44 @@ class JwtAuthService
         }
 
         // Find or create user
-        // In development, try to find by email if external_user_id doesn't match
+        // First try to find by external_user_id
         $user = User::where('external_user_id', $externalUserId)->first();
 
-        // Development fallback: try to find by email
-        if (!$user && app()->environment(['local', 'testing', 'development'])) {
+        // Fallback: try to find by email (works in all environments for test tokens)
+        if (!$user) {
             $email = $payload['email'] ?? null;
             if ($email) {
                 $user = User::where('email', $email)->first();
                 if ($user) {
+                    Log::info('User found by email, updating external_user_id', [
+                        'user_id' => $user->id,
+                        'email' => $email,
+                        'external_user_id' => $externalUserId,
+                    ]);
                     // Update external_user_id for future lookups
                     $user->update(['external_user_id' => $externalUserId]);
                 }
             }
+        }
+
+        // Also try to find by user ID if sub is numeric (for test tokens)
+        if (!$user && is_numeric($externalUserId)) {
+            $user = User::find((int) $externalUserId);
+            if ($user) {
+                Log::info('User found by ID, updating external_user_id', [
+                    'user_id' => $user->id,
+                    'external_user_id' => $externalUserId,
+                ]);
+                // Update external_user_id for future lookups
+                $user->update(['external_user_id' => $externalUserId]);
+            }
+        }
+
+        if (!$user) {
+            Log::info('User not found, will create new user from JWT payload', [
+                'external_user_id' => $externalUserId,
+                'email' => $payload['email'] ?? null,
+            ]);
         }
 
         if (!$user) {
@@ -134,8 +163,16 @@ class JwtAuthService
         $token = request()->bearerToken();
 
         if (!$token) {
+            Log::warning('No bearer token found in request', [
+                'headers' => request()->headers->all(),
+            ]);
             return null;
         }
+
+        Log::info('JWT token found, attempting authentication', [
+            'token_length' => strlen($token),
+            'token_preview' => substr($token, 0, 20) . '...',
+        ]);
 
         return $this->authenticateFromToken($token);
     }
