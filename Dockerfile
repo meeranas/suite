@@ -43,11 +43,13 @@ COPY package.json package-lock.json ./
 # Install Node dependencies
 RUN npm ci
 
-# Copy application files
+# Copy application files (exclude bootstrap cache to regenerate it)
 COPY . .
 
-# Run composer scripts now that all files are in place
-RUN composer dump-autoload --optimize --no-dev
+# Clear bootstrap cache and regenerate package discovery
+RUN rm -rf bootstrap/cache/*.php && \
+    composer dump-autoload --optimize --no-dev --no-interaction && \
+    php artisan package:discover --ansi || true
 
 # Build frontend assets
 RUN npm run build
@@ -79,6 +81,10 @@ WORKDIR /var/www/html
 
 # Copy built application from builder stage
 COPY --from=builder /var/www/html /var/www/html
+
+# Clear and regenerate bootstrap cache in production stage
+RUN rm -rf bootstrap/cache/*.php && \
+    php artisan package:discover --ansi || true
 
 # Copy nginx configuration
 COPY docker/nginx/default.conf /etc/nginx/sites-available/default

@@ -98,6 +98,14 @@ sleep 10
 echo -e "${YELLOW}📊 Running database migrations...${NC}"
 $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T app php artisan migrate --force
 
+# Clear all caches first (important for production)
+echo -e "${YELLOW}🧹 Clearing caches...${NC}"
+$DOCKER_COMPOSE -f docker-compose.prod.yml exec -T app php artisan optimize:clear || true
+
+# Regenerate package discovery (without dev dependencies)
+echo -e "${YELLOW}📦 Regenerating package discovery...${NC}"
+$DOCKER_COMPOSE -f docker-compose.prod.yml exec -T app php artisan package:discover --ansi || true
+
 # Clear and cache configuration
 echo -e "${YELLOW}🧹 Optimizing application...${NC}"
 $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T app php artisan config:cache
