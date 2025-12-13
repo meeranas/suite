@@ -46,10 +46,26 @@ RUN npm ci
 # Copy application files (exclude bootstrap cache to regenerate it)
 COPY . .
 
-# Clear bootstrap cache and regenerate package discovery
-RUN rm -rf bootstrap/cache/*.php && \
-    composer dump-autoload --optimize --no-dev --no-interaction && \
-    php artisan package:discover --ansi || true
+# Clear bootstrap cache completely
+RUN rm -rf bootstrap/cache/*.php
+
+# Regenerate autoloader
+RUN composer dump-autoload --optimize --no-dev --no-interaction
+
+# Regenerate package discovery (this will skip dev dependencies due to composer.json config)
+RUN php artisan package:discover --ansi 2>&1 || true
+
+# Manually remove any dev-only packages from packages.php if they still exist
+RUN php -r "\
+    \$file = 'bootstrap/cache/packages.php'; \
+    if (file_exists(\$file)) { \
+        \$content = file_get_contents(\$file); \
+        \$content = preg_replace('/\\'nunomaduro\\\\collision\\'.*?\\},\\s*/s', '', \$content); \
+        \$content = preg_replace('/\\'spatie\\\\laravel-ignition\\'.*?\\},\\s*/s', '', \$content); \
+        \$content = preg_replace('/\\'laravel\\\\sail\\'.*?\\},\\s*/s', '', \$content); \
+        file_put_contents(\$file, \$content); \
+    } \
+"
 
 # Build frontend assets
 RUN npm run build
@@ -85,6 +101,10 @@ COPY --from=builder /var/www/html /var/www/html
 # Clear and regenerate bootstrap cache in production stage
 RUN rm -rf bootstrap/cache/*.php && \
     php artisan package:discover --ansi || true
+
+# Ensure APP_ENV is production (set in environment, but verify)
+# Clear config cache to ensure production settings are used
+RUN php artisan config:clear || true
 
 # Copy nginx configuration
 COPY docker/nginx/default.conf /etc/nginx/sites-available/default
