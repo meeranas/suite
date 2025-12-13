@@ -75,6 +75,10 @@ WORKDIR /var/www/html/resources/react
 RUN npm ci && npm run build
 WORKDIR /var/www/html
 
+# Copy React app to public root for easier serving
+RUN cp -r public/react/* public/ && \
+    rm -rf public/react
+
 # Stage 2: Production stage
 FROM php:8.2-fpm
 
