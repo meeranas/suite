@@ -49,6 +49,21 @@ if [ ! -f .env ]; then
     fi
 fi
 
+# Check for required environment variables
+echo -e "${YELLOW}🔍 Checking required environment variables...${NC}"
+source .env 2>/dev/null || true
+
+if [ -z "$DB_PASSWORD" ]; then
+    echo -e "${RED}❌ DB_PASSWORD is not set in .env file${NC}"
+    echo -e "${YELLOW}⚠ Please set DB_PASSWORD in .env file before continuing${NC}"
+    echo -e "${YELLOW}⚠ Example: DB_PASSWORD=your_strong_password_here${NC}"
+    exit 1
+fi
+
+if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "" ]; then
+    echo -e "${YELLOW}⚠ APP_KEY is not set, will be generated...${NC}"
+fi
+
 # Generate APP_KEY if not set
 if ! grep -q "APP_KEY=base64:" .env 2>/dev/null; then
     echo -e "${YELLOW}⚠ Generating APP_KEY...${NC}"
