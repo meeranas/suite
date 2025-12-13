@@ -29,19 +29,47 @@ class JwtAuthService
             if (empty($this->publicKey)) {
                 // Try to decode as a simple test token (base64 encoded JSON)
                 try {
-                    $decoded = json_decode(base64_decode($token), true);
-                    if ($decoded && isset($decoded['sub'])) {
-                        // Check if token is expired
-                        if (isset($decoded['exp']) && $decoded['exp'] < now()->timestamp) {
-                            Log::warning('Test token expired');
-                            return null;
+                    $decodedJson = base64_decode($token, true);
+                    if ($decodedJson === false) {
+                        Log::warning('Failed to base64 decode token', [
+                            'token_preview' => substr($token, 0, 50),
+                        ]);
+                    } else {
+                        $decoded = json_decode($decodedJson, true);
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                            Log::warning('Failed to JSON decode token', [
+                                'json_error' => json_last_error_msg(),
+                                'decoded_preview' => substr($decodedJson, 0, 100),
+                            ]);
+                        } elseif ($decoded && isset($decoded['sub'])) {
+                            // Check if token is expired
+                            if (isset($decoded['exp']) && $decoded['exp'] < now()->timestamp) {
+                                Log::warning('Test token expired', [
+                                    'exp' => $decoded['exp'],
+                                    'now' => now()->timestamp,
+                                ]);
+                                return null;
+                            }
+                            Log::info('Test token decoded successfully', [
+                                'sub' => $decoded['sub'],
+                                'email' => $decoded['email'] ?? null,
+                            ]);
+                            return $decoded;
+                        } else {
+                            Log::warning('Token decoded but missing sub field', [
+                                'keys' => array_keys($decoded ?? []),
+                            ]);
                         }
-                        return $decoded;
                     }
                 } catch (Exception $e) {
-                    // Not a test token, continue to normal verification
+                    Log::warning('Exception while decoding test token', [
+                        'error' => $e->getMessage(),
+                    ]);
                 }
-                Log::warning('JWT public key not configured and token is not a valid test token');
+                Log::warning('JWT public key not configured and token is not a valid test token', [
+                    'token_length' => strlen($token),
+                    'token_preview' => substr($token, 0, 50),
+                ]);
                 return null;
             }
 
