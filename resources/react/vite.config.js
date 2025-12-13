@@ -20,6 +20,7 @@ export default defineConfig({
   build: {
     outDir: '../../public/react',
     emptyOutDir: true,
+    base: '/', // Assets will be at root
   },
   esbuild: {
     loader: 'jsx',

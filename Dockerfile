@@ -67,8 +67,13 @@ RUN php -r "\
     } \
 "
 
-# Build frontend assets
+# Build Vue.js frontend assets (for Laravel Inertia)
 RUN npm run build
+
+# Build React frontend (for AI Control Hub)
+WORKDIR /var/www/html/resources/react
+RUN npm ci && npm run build
+WORKDIR /var/www/html
 
 # Stage 2: Production stage
 FROM php:8.2-fpm
