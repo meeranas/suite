@@ -59,8 +59,10 @@ class Suite extends Model
 
     public function scopeForTier($query, string $tier)
     {
-        return $query->whereJsonContains('subscription_tiers', $tier)
-            ->orWhereNull('subscription_tiers');
+        return $query->where(function ($q) use ($tier) {
+            $q->whereJsonContains('subscription_tiers', $tier)
+                ->orWhereNull('subscription_tiers');
+        });
     }
 }
 

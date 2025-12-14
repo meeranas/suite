@@ -19,7 +19,8 @@ class SuiteController extends Controller
         $query = Suite::query();
 
         // Filter by subscription tier
-        if ($tier) {
+
+        if (!$user->hasRole('admin') && $tier) {
             $query->forTier($tier);
         }
 
