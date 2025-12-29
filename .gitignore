@@ -19,3 +19,7 @@ npm-debug.log
 /.vscode
 
 /resources/react/node_modules
+
+docker-compose.yml
+docker/supervisor/supervisord.conf
+supervisord.log
