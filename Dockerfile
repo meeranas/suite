@@ -80,8 +80,11 @@ RUN npm ci && npm run build
 WORKDIR /var/www/html
 
 # Copy React app to public root for easier serving
-RUN cp -r public/react/* public/ && \
-    rm -rf public/react
+# Verify index.html exists before copying
+RUN test -f public/react/index.html && \
+    cp -r public/react/* public/ && \
+    rm -rf public/react && \
+    test -f public/index.html || (echo "ERROR: React app index.html not found!" && exit 1)
 
 # Ensure public/hot is removed (in case it was created during React build)
 RUN rm -f public/hot
