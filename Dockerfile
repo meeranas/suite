@@ -70,6 +70,10 @@ RUN php -r "\
 # Build Vue.js frontend assets (for Laravel Inertia)
 RUN npm run build
 
+# Remove public/hot file if it exists (forces production mode)
+# This file is created by Vite dev server and makes Laravel use dev server even in production
+RUN rm -f public/hot
+
 # Build React frontend (for AI Control Hub)
 WORKDIR /var/www/html/resources/react
 RUN npm ci && npm run build
@@ -78,6 +82,9 @@ WORKDIR /var/www/html
 # Copy React app to public root for easier serving
 RUN cp -r public/react/* public/ && \
     rm -rf public/react
+
+# Ensure public/hot is removed (in case it was created during React build)
+RUN rm -f public/hot
 
 # Stage 2: Production stage
 FROM php:8.2-fpm
@@ -106,6 +113,9 @@ WORKDIR /var/www/html
 
 # Copy built application from builder stage
 COPY --from=builder /var/www/html /var/www/html
+
+# Ensure public/hot file is removed (forces production mode, not dev server)
+RUN rm -f public/hot
 
 # Clear and regenerate bootstrap cache in production stage
 RUN rm -rf bootstrap/cache/*.php && \
