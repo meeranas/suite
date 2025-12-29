@@ -125,8 +125,8 @@ RUN rm -rf bootstrap/cache/*.php && \
 # Clear config cache to ensure production settings are used
 RUN php artisan config:clear || true
 
-# Copy nginx configuration
-COPY docker/nginx/default.conf /etc/nginx/sites-available/default
+# Copy production nginx configuration (serves React app at root)
+COPY docker/nginx/default.prod.conf /etc/nginx/sites-available/default
 
 # Copy supervisor configuration
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
