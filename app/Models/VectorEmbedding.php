@@ -13,6 +13,7 @@ class VectorEmbedding extends Model
     protected $fillable = [
         'file_id',
         'chat_id',
+        'agent_id',
         'user_id',
         'content',
         'content_hash',

@@ -585,7 +585,7 @@ export default function ChatPage({ onSidebarToggle, onThemeToggle, onRefreshChat
           )}
 
           {/* Data source checkboxes - show if any data source is enabled */}
-          {!isFooterMinimized && (allowedDataSources.allow_rag || allowedDataSources.allow_web_search || allowedDataSources.allow_external_apis) && (
+          {/* {!isFooterMinimized && (allowedDataSources.allow_rag || allowedDataSources.allow_web_search || allowedDataSources.allow_external_apis) && (
             <div className="checks" style={{ marginTop: allowedDataSources.allow_rag ? '12px' : '0', padding: '12px 0' }}>
               {allowedDataSources.allow_rag && (
                 <label>
@@ -618,7 +618,7 @@ export default function ChatPage({ onSidebarToggle, onThemeToggle, onRefreshChat
                 </label>
               )}
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>

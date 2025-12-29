@@ -34,6 +34,7 @@ class ExternalApiConfigController extends Controller
             'provider' => 'required|string|max:255',
             'base_url' => 'nullable|url|max:500',
             'api_type' => 'nullable|string|in:rest,graphql',
+            'type' => 'required|string|in:web_search,data_api',
             'api_key' => 'nullable|string', // Optional for APIs that don't require keys
             'api_secret' => 'nullable|string',
             'config' => 'nullable|array',
@@ -45,6 +46,7 @@ class ExternalApiConfigController extends Controller
             'provider' => $request->provider,
             'base_url' => $request->base_url,
             'api_type' => $request->api_type ?? 'rest',
+            'type' => $request->type ?? 'data_api',
             'encrypted_api_key' => $request->api_key
                 ? $this->encryption->encryptApiKey($request->api_key)
                 : null,
@@ -75,13 +77,14 @@ class ExternalApiConfigController extends Controller
             'provider' => 'sometimes|string|max:255',
             'base_url' => 'nullable|url|max:500',
             'api_type' => 'nullable|string|in:rest,graphql',
+            'type' => 'sometimes|string|in:web_search,data_api',
             'api_key' => 'nullable|string',
             'api_secret' => 'nullable|string',
             'config' => 'nullable|array',
             'is_active' => 'boolean',
         ]);
 
-        $updateData = $request->only(['name', 'provider', 'base_url', 'api_type', 'config']);
+        $updateData = $request->only(['name', 'provider', 'base_url', 'api_type', 'type', 'config']);
         $updateData['is_active'] = $request->boolean('is_active', $externalApiConfig->is_active);
 
         // Only update API key if provided

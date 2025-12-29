@@ -205,3 +205,106 @@
 2025-12-05 01:56:08,963 WARN stopped: vite (terminated by SIGTERM)
 2025-12-05 01:56:10,115 INFO stopped: php-fpm (exit status 0)
 2025-12-05 01:56:10,184 INFO stopped: nginx (exit status 0)
+2025-12-11 17:09:08,805 INFO Set uid to user 0 succeeded
+2025-12-11 17:09:08,825 INFO supervisord started with pid 1
+2025-12-11 17:09:09,837 INFO spawned: 'nginx' with pid 7
+2025-12-11 17:09:09,838 INFO spawned: 'php-fpm' with pid 8
+2025-12-11 17:09:09,865 INFO spawned: 'vite' with pid 9
+2025-12-11 17:09:11,142 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-11 17:09:11,142 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-11 17:09:11,142 INFO success: vite entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-14 11:21:23,771 INFO Set uid to user 0 succeeded
+2025-12-14 11:21:23,774 INFO supervisord started with pid 1
+2025-12-14 11:21:24,777 INFO spawned: 'nginx' with pid 7
+2025-12-14 11:21:24,778 INFO spawned: 'php-fpm' with pid 8
+2025-12-14 11:21:24,781 INFO spawned: 'vite' with pid 9
+2025-12-14 11:21:26,505 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-14 11:21:26,505 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-14 11:21:26,505 INFO success: vite entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-14 11:21:33,518 WARN received SIGQUIT indicating exit request
+2025-12-14 11:21:33,519 INFO waiting for nginx, php-fpm, vite to die
+2025-12-14 11:21:34,522 WARN stopped: vite (terminated by SIGTERM)
+2025-12-14 11:21:34,530 INFO stopped: php-fpm (exit status 0)
+2025-12-14 11:21:34,532 INFO stopped: nginx (exit status 0)
+2025-12-14 18:10:06,347 INFO Set uid to user 0 succeeded
+2025-12-14 18:10:06,348 INFO supervisord started with pid 7
+2025-12-14 18:10:07,363 INFO spawned: 'nginx' with pid 8
+2025-12-14 18:10:07,366 INFO spawned: 'php-fpm' with pid 9
+2025-12-14 18:10:07,369 INFO spawned: 'vite' with pid 10
+2025-12-14 18:10:08,761 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-14 18:10:08,762 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-14 18:10:08,762 INFO success: vite entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-24 02:59:56,802 INFO Set uid to user 0 succeeded
+2025-12-24 02:59:56,808 INFO supervisord started with pid 7
+2025-12-24 02:59:57,812 INFO spawned: 'nginx' with pid 8
+2025-12-24 02:59:57,814 INFO spawned: 'php-fpm' with pid 9
+2025-12-24 02:59:57,815 INFO spawned: 'vite' with pid 10
+2025-12-24 02:59:59,761 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-24 02:59:59,761 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-24 02:59:59,762 INFO success: vite entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-24 03:51:27,089 INFO Set uid to user 0 succeeded
+2025-12-24 03:51:27,092 INFO supervisord started with pid 7
+2025-12-24 03:51:28,100 INFO spawned: 'laravel-worker_00' with pid 8
+2025-12-24 03:51:28,101 INFO spawned: 'nginx' with pid 9
+2025-12-24 03:51:28,103 INFO spawned: 'php-fpm' with pid 10
+2025-12-24 03:51:28,106 INFO spawned: 'vite' with pid 11
+2025-12-24 03:51:29,743 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-24 03:51:29,745 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-24 03:51:29,746 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-24 03:51:29,746 INFO success: vite entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-25 04:14:13,390 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-25 04:14:14,418 INFO spawned: 'laravel-worker_00' with pid 925
+2025-12-25 04:14:15,422 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-25 05:14:14,985 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-25 05:14:16,001 INFO spawned: 'laravel-worker_00' with pid 930
+2025-12-25 05:14:17,006 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 01:57:55,630 INFO Set uid to user 0 succeeded
+2025-12-27 01:57:55,633 INFO supervisord started with pid 7
+2025-12-27 01:57:56,637 INFO spawned: 'laravel-worker_00' with pid 8
+2025-12-27 01:57:56,638 INFO spawned: 'nginx' with pid 9
+2025-12-27 01:57:56,638 INFO spawned: 'php-fpm' with pid 10
+2025-12-27 01:57:56,640 INFO spawned: 'vite' with pid 11
+2025-12-27 01:57:58,085 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 01:57:58,085 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 01:57:58,085 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 01:57:58,085 INFO success: vite entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 02:57:58,454 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-27 02:57:59,467 INFO spawned: 'laravel-worker_00' with pid 60
+2025-12-27 02:58:00,477 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 03:58:01,700 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-27 03:58:02,711 INFO spawned: 'laravel-worker_00' with pid 65
+2025-12-27 03:58:03,725 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 04:58:04,924 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-27 04:58:05,933 INFO spawned: 'laravel-worker_00' with pid 70
+2025-12-27 04:58:06,940 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 05:58:06,774 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-27 05:58:07,791 INFO spawned: 'laravel-worker_00' with pid 75
+2025-12-27 05:58:08,798 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 06:58:10,969 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-27 06:58:11,986 INFO spawned: 'laravel-worker_00' with pid 80
+2025-12-27 06:58:12,997 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-27 07:58:12,990 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-27 07:58:14,003 INFO spawned: 'laravel-worker_00' with pid 85
+2025-12-27 07:58:15,013 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-28 01:36:14,283 INFO Set uid to user 0 succeeded
+2025-12-28 01:36:14,288 INFO supervisord started with pid 7
+2025-12-28 01:36:15,295 INFO spawned: 'laravel-worker_00' with pid 8
+2025-12-28 01:36:15,299 INFO spawned: 'nginx' with pid 9
+2025-12-28 01:36:15,301 INFO spawned: 'php-fpm' with pid 10
+2025-12-28 01:36:15,304 INFO spawned: 'vite' with pid 11
+2025-12-28 01:36:16,830 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-28 01:36:16,831 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-28 01:36:16,832 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-28 01:36:16,833 INFO success: vite entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-28 02:36:17,184 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-28 02:36:18,200 INFO spawned: 'laravel-worker_00' with pid 760
+2025-12-28 02:36:19,208 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-28 10:19:21,080 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-28 10:19:22,092 INFO spawned: 'laravel-worker_00' with pid 1030
+2025-12-28 10:19:23,097 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-28 11:19:24,775 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-28 11:19:25,795 INFO spawned: 'laravel-worker_00' with pid 3881
+2025-12-28 11:19:26,805 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-29 02:03:15,280 INFO exited: laravel-worker_00 (exit status 0; expected)
+2025-12-29 02:03:16,315 INFO spawned: 'laravel-worker_00' with pid 3886
+2025-12-29 02:03:17,360 INFO success: laravel-worker_00 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)

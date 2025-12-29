@@ -18,22 +18,30 @@ You MUST always combine:
 • External API data
 based on the features enabled for this Agent.
 
+IMPORTANT: DOCUMENT COUNTING
+• A "document file" is a single uploaded file (PDF, DOCX, etc.)
+• A "chunk" is a text section extracted from a document file
+• Multiple chunks can come from the same document file
+• When counting documents, count FILES, not chunks
+• Example: 1 PDF file with 5 chunks = 1 document, not 5 documents
+
 STRICT RULES:
 1. DO NOT hallucinate facts, numbers, regulations, or events.
-2. Every claim must be backed by a specific source tag:
+2. DO NOT confuse document files with text chunks - count files, not chunks.
+3. Every claim must be backed by a specific source tag:
  • [DOC] for uploaded document evidence
  • [WEB] for web search evidence
  • [API] for external API evidence
  • [AGENT] for previous agent output in workflow chains
  • [ASSUMPTION] only if explicitly stated by user
-3. If data cannot be verified, you MUST write: "INSUFFICIENT VERIFIED DATA".
-4. UNCITED CLAIMS ARE NOT PERMITTED.
-5. If web search or API features are disabled for this Agent, do not fabricate data — use only available sources.
-6. Use ONLY the data available in:
+4. If data cannot be verified, you MUST write: "INSUFFICIENT VERIFIED DATA".
+5. UNCITED CLAIMS ARE NOT PERMITTED.
+6. If web search or API features are disabled for this Agent, do not fabricate data — use only available sources.
+7. Use ONLY the data available in:
  • User documents
  • Real web search results
  • External API responses
-7. Never rely on "general knowledge" unless explicitly supported by cited results.
+8. Never rely on "general knowledge" unless explicitly supported by cited results.
 
 MANDATORY REPORT STRUCTURE (ALL AGENTS MUST FOLLOW):
 1. Executive Summary
@@ -286,25 +294,49 @@ PROMPT,
         // Add RAG context
         if (!empty($ragContext)) {
             $prompt .= "UPLOADED DOCUMENT EVIDENCE [DOC]:\n";
-            foreach ($ragContext as $index => $context) {
-                // Handle both array format (with metadata) and string format (legacy)
+
+            // Group chunks by file name for better clarity
+            $chunksByFile = [];
+            foreach ($ragContext as $context) {
                 $content = is_array($context) ? ($context['content'] ?? $context) : $context;
                 $metadata = is_array($context) ? ($context['metadata'] ?? []) : [];
+                $fileName = $metadata['file_name'] ?? (is_array($context) && isset($context['file_name']) ? $context['file_name'] : 'Unknown');
 
-                $prompt .= "[DOC-" . ($index + 1) . "] " . $content . "\n";
-                if (isset($metadata['file_name'])) {
-                    $prompt .= "Source: " . $metadata['file_name'] . "\n";
-                } elseif (is_array($context) && isset($context['file_name'])) {
-                    // Fallback: check if filename is directly in context
-                    $prompt .= "Source: " . $context['file_name'] . "\n";
+                if (!isset($chunksByFile[$fileName])) {
+                    $chunksByFile[$fileName] = [];
                 }
+                $chunksByFile[$fileName][] = $content;
+            }
+
+            // Count unique files
+            $uniqueFileCount = count($chunksByFile);
+            $totalChunks = count($ragContext);
+
+            // IMPORTANT: Clarify that chunks are parts of files, not separate documents
+            if ($uniqueFileCount === 1) {
+                $prompt .= "Found 1 document file with {$totalChunks} relevant text chunks (sections) from that file:\n\n";
+            } else {
+                $prompt .= "Found {$uniqueFileCount} document files with a total of {$totalChunks} relevant text chunks (sections):\n\n";
+            }
+
+            $chunkIndex = 1;
+            foreach ($chunksByFile as $fileName => $chunks) {
+                $chunkCount = count($chunks);
+                $prompt .= "FILE: {$fileName}\n";
+                $prompt .= "This file contains {$chunkCount} relevant text section(s) shown below:\n";
+                foreach ($chunks as $chunk) {
+                    $prompt .= "[SECTION-" . $chunkIndex . "] " . $chunk . "\n";
+                    $chunkIndex++;
+                }
+                $prompt .= "\n";
             }
             $prompt .= "\n";
         } else {
             // Explicitly state if no documents were found
             $prompt .= "UPLOADED DOCUMENT EVIDENCE [DOC]:\n";
             $prompt .= "No relevant document chunks found for this query.\n";
-            $prompt .= "If documents were uploaded, they may not contain relevant information for this question.\n\n";
+            $prompt .= "If document files were uploaded, they may not contain relevant information for this question.\n";
+            $prompt .= "NOTE: A 'chunk' is a text section from a document file, not a separate document.\n\n";
         }
 
         // Add web search results

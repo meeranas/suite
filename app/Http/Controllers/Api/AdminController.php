@@ -122,6 +122,7 @@ class AdminController extends Controller
                     'id' => $config->id, // Use database ID
                     'name' => $config->name, // Use name from database
                     'provider' => $config->provider, // Include provider
+                    'type' => $config->type ?? 'data_api', // Include type (web_search or data_api)
                     'api_type' => $config->api_type ?? 'rest', // Include API type
                     'description' => $config->config['description'] ?? $config->name, // Use description from config or fallback to name
                 ];

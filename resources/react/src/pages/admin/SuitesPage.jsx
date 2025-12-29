@@ -5,7 +5,6 @@ export default function SuitesPage() {
   const [suites, setSuites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingSuite, setEditingSuite] = useState(null);
   const [tiers, setTiers] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -45,41 +44,12 @@ export default function SuitesPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingSuite) {
-        await axios.put(`/api/suites/${editingSuite.id}`, formData);
-      } else {
-        await axios.post('/api/suites', formData);
-      }
+      await axios.post('/api/suites', formData);
       setShowModal(false);
-      setEditingSuite(null);
       setFormData({ name: '', description: '', status: 'hidden', subscription_tiers: [] });
       fetchSuites();
     } catch (error) {
-      console.error('Failed to save suite:', error);
-      alert('Failed to save suite. Please try again.');
-    }
-  };
-
-  const handleEdit = (suite) => {
-    setEditingSuite(suite);
-    setFormData({
-      name: suite.name,
-      description: suite.description || '',
-      status: suite.status || 'hidden',
-      subscription_tiers: suite.subscription_tiers || [],
-    });
-    setShowModal(true);
-  };
-
-  const handleToggleStatus = async (suite, e) => {
-    e.stopPropagation();
-    try {
-      const newStatus = suite.status === 'active' ? 'hidden' : 'active';
-      await axios.put(`/api/suites/${suite.id}`, { status: newStatus });
-      fetchSuites();
-    } catch (error) {
-      console.error('Failed to update suite status:', error);
-      alert('Failed to update suite status. Please try again.');
+      console.error('Failed to create suite:', error);
     }
   };
 
@@ -97,11 +67,7 @@ export default function SuitesPage() {
         <div className="panel-header">
           <div className="panel-title">Suites</div>
           <button
-            onClick={() => {
-              setEditingSuite(null);
-              setFormData({ name: '', description: '', status: 'hidden', subscription_tiers: [] });
-              setShowModal(true);
-            }}
+            onClick={() => setShowModal(true)}
             className="btn btn-outline"
             style={{ fontSize: '11px' }}
           >
@@ -123,12 +89,7 @@ export default function SuitesPage() {
           <tbody>
             {suites.map((suite) => (
               <tr key={suite.id}>
-                <td 
-                  style={{ fontWeight: 500, cursor: 'pointer' }}
-                  onClick={() => handleEdit(suite)}
-                >
-                  {suite.name}
-                </td>
+                <td style={{ fontWeight: 500 }}>{suite.name}</td>
                 <td style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   {suite.description || '-'}
                 </td>
@@ -136,8 +97,6 @@ export default function SuitesPage() {
                 <td>
                   <span
                     className={`toggle ${suite.status === 'active' ? 'on' : ''}`}
-                    onClick={(e) => handleToggleStatus(suite, e)}
-                    style={{ cursor: 'pointer' }}
                   ></span>
                 </td>
               </tr>
@@ -167,7 +126,7 @@ export default function SuitesPage() {
             }}
           >
             <div className="panel-title" style={{ marginBottom: '16px' }}>
-              {editingSuite ? 'Edit Suite' : 'Create Suite'}
+              Create Suite
             </div>
             <form onSubmit={handleSubmit}>
               <div className="field-label">Name</div>
@@ -240,17 +199,13 @@ export default function SuitesPage() {
               >
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setEditingSuite(null);
-                    setFormData({ name: '', description: '', status: 'hidden', subscription_tiers: [] });
-                  }}
+                  onClick={() => setShowModal(false)}
                   className="btn btn-outline"
                 >
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingSuite ? 'Update' : 'Create'}
+                  Create
                 </button>
               </div>
             </form>

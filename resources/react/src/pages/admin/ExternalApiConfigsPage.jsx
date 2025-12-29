@@ -12,6 +12,7 @@ export default function ExternalApiConfigsPage() {
     provider: '',
     base_url: '',
     api_type: 'rest',
+    type: 'data_api', // 'data_api' or 'web_search'
     api_key: '',
     api_secret: '',
     config: {
@@ -68,6 +69,7 @@ export default function ExternalApiConfigsPage() {
         provider: config.provider,
         base_url: config.base_url || '',
         api_type: config.api_type || 'rest',
+        type: config.type || 'data_api', // Load type from config
         api_key: '', // Don't show existing key for security
         api_secret: '',
         config: {
@@ -89,6 +91,7 @@ export default function ExternalApiConfigsPage() {
         provider: '',
         base_url: '',
         api_type: 'rest',
+        type: 'data_api', // Default to data_api
         api_key: '',
         api_secret: '',
         config: {
@@ -167,11 +170,18 @@ export default function ExternalApiConfigsPage() {
       };
     }
 
+    // Suggest type based on provider
+    let suggestedType = 'data_api'; // Default to Data API
+    if (['serper', 'bing', 'brave'].includes(providerId)) {
+      suggestedType = 'web_search';
+    }
+
     setFormData((prev) => ({
       ...prev,
       provider: providerId,
       base_url: provider?.baseUrl || prev.base_url,
       config: newConfig,
+      type: suggestedType, // Auto-suggest type based on provider
       api_key: providerId === 'clinicaltrials' ? '' : prev.api_key, // ClinicalTrials doesn't need key
     }));
   };
@@ -277,9 +287,6 @@ export default function ExternalApiConfigsPage() {
           </thead>
           <tbody>
             {configs.map((config) => {
-              const isSearchProvider = ['serper', 'bing', 'brave'].includes(
-                config.provider
-              );
               return (
                 <tr
                   key={config.id}
@@ -290,7 +297,7 @@ export default function ExternalApiConfigsPage() {
                   <td>{getProviderName(config.provider)}</td>
                   <td>
                     <span className="tag">
-                      {isSearchProvider ? 'Web Search' : 'Data API'}
+                      {config.type === 'web_search' ? 'Web Search' : 'Data API'}
                     </span>
                   </td>
                   <td>
@@ -387,7 +394,23 @@ export default function ExternalApiConfigsPage() {
                 placeholder="https://api.example.com"
               />
 
-              <div className="field-label">API Type</div>
+              <div className="field-label">API Type (Categorization) *</div>
+              <select
+                value={formData.type}
+                onChange={(e) =>
+                  setFormData({ ...formData, type: e.target.value })
+                }
+                className="input"
+                required
+              >
+                <option value="data_api">Data API</option>
+                <option value="web_search">Web Search</option>
+              </select>
+              <div className="note" style={{ marginTop: '4px', fontSize: '12px' }}>
+                Select "Data API" for structured data sources (FDA, Crunchbase, etc.) or "Web Search" for search providers (Serper, Bing, Brave).
+              </div>
+
+              <div className="field-label">API Protocol</div>
               <select
                 value={formData.api_type}
                 onChange={(e) =>

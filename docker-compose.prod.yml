@@ -12,7 +12,7 @@ services:
     networks:
       - ai_suite_network
     ports:
-      - "${APP_PORT:-3000}:80"
+      - "${APP_PORT:-8080}:80"
     depends_on:
       - db
       - redis
@@ -46,8 +46,6 @@ services:
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - ai_suite_network
-    # Database port exposed for external access (pgAdmin, etc.)
-    # Comment out if you don't need external database access
     ports:
       - "${DB_PORT:-5432}:5432"
     healthcheck:
@@ -65,10 +63,8 @@ services:
       - redisdata:/data
     networks:
       - ai_suite_network
-    # Redis port not exposed externally (only accessible within Docker network)
-    # Uncomment below if you need external access (not recommended for production)
-    # ports:
-    #   - "${REDIS_PORT:-6380}:6379"
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -81,8 +77,6 @@ services:
     restart: unless-stopped
     networks:
       - ai_suite_network
-    # ChromaDB port exposed for debugging/monitoring
-    # Can be commented out if not needed externally
     ports:
       - "${CHROMA_PORT:-8001}:8000"
     volumes:

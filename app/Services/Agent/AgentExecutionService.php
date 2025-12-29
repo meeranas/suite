@@ -55,7 +55,8 @@ class AgentExecutionService
             $ragContext = $this->ragService->searchContext(
                 $userMessage,
                 $chat->user,
-                $chat->id, // Pass chat_id to filter documents
+                $chat->id, // Pass chat_id to filter user-uploaded documents
+                $agent->id, // Pass agent_id to filter admin-uploaded documents
                 5
             );
         }
@@ -65,7 +66,11 @@ class AgentExecutionService
         // For now, we'll skip automatic web search when tools are available
         $useTools = $agent->enable_external_apis && !empty($agent->external_api_configs);
 
+        logger("useTools");
+        logger($useTools);
+
         if ($agent->enable_web_search && !$useTools) {
+
             try {
                 $searchResults = $this->searchService->search($userMessage);
                 $webSearchResults = $searchResults['results'] ?? [];

@@ -33,9 +33,7 @@ class SuiteController extends Controller
             'agents' => function ($q) {
                 $q->active()->ordered();
             }
-        ])
-            ->orderBy('name', 'asc')
-            ->get();
+        ])->get();
 
         return response()->json($suites);
     }

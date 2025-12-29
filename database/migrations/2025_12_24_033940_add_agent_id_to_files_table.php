@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('external_api_configs', function (Blueprint $table) {
+        Schema::table('files', function (Blueprint $table) {
             //
         });
     }
@@ -20,7 +20,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('external_api_configs', function (Blueprint $table) {
+        Schema::table('files', function (Blueprint $table) {
             //
         });
     }

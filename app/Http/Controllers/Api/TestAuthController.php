@@ -18,9 +18,11 @@ class TestAuthController extends Controller
      */
     public function generateTestToken(Request $request): JsonResponse
     {
-        // Only allow in non-production environments
-        if (app()->environment('production')) {
-            return response()->json(['error' => 'Not available in production'], 403);
+        // Allow in all environments if JWT public key is not configured
+        // This enables testing without setting up JWT keys
+        $jwtPublicKey = config('auth.jwt_public_key', '');
+        if (app()->environment('production') && !empty($jwtPublicKey)) {
+            return response()->json(['error' => 'Not available in production when JWT keys are configured'], 403);
         }
 
         $request->validate([

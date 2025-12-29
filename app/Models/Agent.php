@@ -57,6 +57,11 @@ class Agent extends Model
         return $this->hasMany(UsageLog::class);
     }
 
+    public function files(): HasMany
+    {
+        return $this->hasMany(File::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

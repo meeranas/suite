@@ -35,6 +35,7 @@ class WorkflowOrchestrator
      */
     public function execute(AgentWorkflow $workflow, Chat $chat, string $userMessage): array
     {
+
         $agents = $workflow->agents;
         $context = [
             'chat_id' => $chat->id,
@@ -60,6 +61,10 @@ class WorkflowOrchestrator
                 ];
 
                 $finalResponse = $response['content'];
+
+                logger("response ontenxt");
+                logger($response['context']);
+                logger($finalResponse);
                 $previousAgentOutput = $response['content']; // Pass to next agent
 
                 // Store message
@@ -118,7 +123,8 @@ class WorkflowOrchestrator
             $ragContext = $this->ragService->searchContext(
                 $userMessage,
                 $chat->user,
-                $chat->id, // Pass chat_id to filter documents
+                $chat->id, // Pass chat_id to filter user-uploaded documents
+                $agent->id, // Pass agent_id to filter admin-uploaded documents
                 5
             );
         }

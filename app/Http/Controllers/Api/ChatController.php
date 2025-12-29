@@ -159,6 +159,9 @@ class ChatController extends Controller
         // Execute workflow if available
         if ($chat->workflow) {
             try {
+
+                logger("executing workflow");
+                logger($chat->workflow);
                 $result = $this->workflowOrchestrator->execute(
                     $chat->workflow,
                     $chat,

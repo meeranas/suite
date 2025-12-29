@@ -29,6 +29,9 @@ class SearchService
             throw new \Exception("Search provider '{$provider}' not configured");
         }
 
+        logger("search");
+        logger($provider);
+
         return match ($provider) {
             'serper' => $this->searchSerper($query, $config),
             'bing' => $this->searchBing($query, $config),

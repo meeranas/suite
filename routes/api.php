@@ -34,6 +34,7 @@ Route::middleware(['api', 'jwt.auth'])->group(function () {
     // Agents
     Route::apiResource('suites.agents', AgentController::class)->shallow();
     Route::get('agents', [AgentController::class, 'indexAll']);
+    Route::get('agents/{agent}/files', [AgentController::class, 'getFiles']);
 
     // Workflows
     Route::apiResource('suites.workflows', WorkflowController::class)->shallow();
@@ -46,6 +47,7 @@ Route::middleware(['api', 'jwt.auth'])->group(function () {
 
     // Files
     Route::apiResource('files', FileController::class);
+    Route::get('files/{file}/download', [FileController::class, 'download']);
     Route::post('files/{file}/retry', [\App\Http\Controllers\Api\FileRetryController::class, 'retry']);
 
     // Reports

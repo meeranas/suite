@@ -61,6 +61,7 @@ class AgentController extends Controller
             'enable_web_search' => 'boolean',
             'enable_external_apis' => 'boolean',
             'order' => 'integer',
+            'metadata' => 'nullable|array',
         ]);
 
         $agent = Agent::create([
@@ -76,6 +77,7 @@ class AgentController extends Controller
             'external_api_configs' => $request->external_api_configs ?? [],
             'enable_rag' => $request->boolean('enable_rag', false),
             'enable_web_search' => $request->boolean('enable_web_search', false),
+            'metadata' => $request->metadata ?? [],
             'order' => $request->order ?? 0,
         ]);
 
@@ -106,7 +108,6 @@ class AgentController extends Controller
         }
 
         $request->validate([
-            'suite_id' => 'sometimes|integer|exists:suites,id',
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'model_provider' => 'sometimes|in:openai,gemini,mistral,claude,anthropic',
@@ -120,10 +121,10 @@ class AgentController extends Controller
             'enable_web_search' => 'boolean',
             'is_active' => 'boolean',
             'order' => 'integer',
+            'metadata' => 'nullable|array',
         ]);
 
         $updateData = $request->only([
-            'suite_id',
             'name',
             'description',
             'model_provider',
@@ -137,7 +138,14 @@ class AgentController extends Controller
             'enable_external_apis',
             'is_active',
             'order',
+            'metadata',
         ]);
+
+        // Merge metadata if it exists, to preserve existing metadata fields
+        if ($request->has('metadata') && is_array($request->metadata)) {
+            $existingMetadata = $agent->metadata ?? [];
+            $updateData['metadata'] = array_merge($existingMetadata, $request->metadata);
+        }
 
         $agent->update($updateData);
 
@@ -149,6 +157,16 @@ class AgentController extends Controller
         $agent->delete();
 
         return response()->json(['message' => 'Agent deleted']);
+    }
+
+    public function getFiles(Agent $agent): JsonResponse
+    {
+        // Get all active files for this agent (exclude soft-deleted)
+        $files = $agent->files()
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($files);
     }
 }
 
