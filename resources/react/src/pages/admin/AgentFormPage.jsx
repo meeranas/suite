@@ -235,7 +235,7 @@ export default function AgentFormPage() {
       const method = isEdit ? 'put' : 'post';
 
       const response = await axios[method](url, submitData);
-      // If creating a new agent, upload pending files and redirect to edit page
+      // If creating a new agent, upload pending files and redirect to agents page
       if (!isEdit) {
         const newAgentId = response.data?.id || response.data?.data?.id;
         if (newAgentId) {
@@ -243,10 +243,8 @@ export default function AgentFormPage() {
           if (pendingFiles.length > 0) {
             await uploadPendingFiles(newAgentId);
           }
-          navigate(`/admin/suites/${formData.suite_id}/agents/${newAgentId}/edit`);
-        } else {
-          navigate('/admin/agents');
         }
+        navigate('/admin/agents');
       } else {
         navigate('/admin/agents');
       }
