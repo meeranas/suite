@@ -110,6 +110,7 @@ class AgentController extends Controller
         $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
+            'suite_id' => 'sometimes|integer|exists:suites,id',
             'model_provider' => 'sometimes|in:openai,gemini,mistral,claude,anthropic',
             'model_name' => 'sometimes|string',
             'system_prompt' => 'nullable|string',
@@ -127,6 +128,7 @@ class AgentController extends Controller
         $updateData = $request->only([
             'name',
             'description',
+            'suite_id',
             'model_provider',
             'model_name',
             'system_prompt',

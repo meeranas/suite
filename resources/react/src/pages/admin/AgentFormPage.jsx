@@ -17,6 +17,7 @@ export default function AgentFormPage() {
   const [suites, setSuites] = useState([]);
   const [agentFiles, setAgentFiles] = useState([]);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState([]); // Files selected during creation
 
   const [formData, setFormData] = useState({
     suite_id: suiteId || '',
@@ -233,8 +234,22 @@ export default function AgentFormPage() {
         : `/api/suites/${formData.suite_id}/agents`;
       const method = isEdit ? 'put' : 'post';
 
-      await axios[method](url, submitData);
-      navigate('/admin/agents');
+      const response = await axios[method](url, submitData);
+      // If creating a new agent, upload pending files and redirect to edit page
+      if (!isEdit) {
+        const newAgentId = response.data?.id || response.data?.data?.id;
+        if (newAgentId) {
+          // Upload pending files if any
+          if (pendingFiles.length > 0) {
+            await uploadPendingFiles(newAgentId);
+          }
+          navigate(`/admin/suites/${formData.suite_id}/agents/${newAgentId}/edit`);
+        } else {
+          navigate('/admin/agents');
+        }
+      } else {
+        navigate('/admin/agents');
+      }
     } catch (error) {
       console.error('Failed to save agent:', error);
       if (error.response?.data?.errors) {
@@ -296,7 +311,17 @@ export default function AgentFormPage() {
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file || !agentId) return;
+    if (!file) return;
+
+    // If creating new agent, store file in pendingFiles
+    if (!isEdit) {
+      setPendingFiles((prev) => [...prev, file]);
+      e.target.value = ''; // Reset file input
+      return;
+    }
+
+    // If editing, upload immediately
+    if (!agentId) return;
 
     setUploadingFile(true);
     try {
@@ -316,6 +341,36 @@ export default function AgentFormPage() {
     } catch (error) {
       console.error('Failed to upload file:', error);
       alert('Failed to upload file. Please try again.');
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const removePendingFile = (index) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadPendingFiles = async (newAgentId) => {
+    if (pendingFiles.length === 0) return;
+
+    setUploadingFile(true);
+    try {
+      for (const file of pendingFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('agent_id', newAgentId);
+
+        await axios.post('/api/files', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
+      // Clear pending files after successful upload
+      setPendingFiles([]);
+    } catch (error) {
+      console.error('Failed to upload pending files:', error);
+      alert('Agent created successfully, but some files failed to upload. You can upload them manually.');
     } finally {
       setUploadingFile(false);
     }
@@ -464,7 +519,6 @@ export default function AgentFormPage() {
             }
             className="input"
             required
-            disabled={isEdit}
           >
             <option value="">Select a Suite</option>
             {suites.map((suite) => (
@@ -673,19 +727,21 @@ export default function AgentFormPage() {
             </>
           )}
 
-          {formData.enable_rag && isEdit && (
+          {formData.enable_rag && (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <div className="field-label">Admin Uploaded Files</div>
-                <button
-                  type="button"
-                  onClick={fetchAgentFiles}
-                  className="btn btn-outline"
-                  style={{ fontSize: '12px', padding: '4px 8px' }}
-                  title="Refresh file status"
-                >
-                  ↻ Refresh
-                </button>
+                {isEdit && (
+                  <button
+                    type="button"
+                    onClick={fetchAgentFiles}
+                    className="btn btn-outline"
+                    style={{ fontSize: '12px', padding: '4px 8px' }}
+                    title="Refresh file status"
+                  >
+                    ↻ Refresh
+                  </button>
+                )}
               </div>
               <div style={{ 
                 border: '1px solid var(--border)', 
@@ -697,22 +753,23 @@ export default function AgentFormPage() {
                 <input
                   type="file"
                   onChange={handleFileUpload}
-                  disabled={uploadingFile}
+                  disabled={uploadingFile || (isEdit && !agentId)}
                   accept=".pdf,.docx,.xlsx,.txt,.csv,.jpeg,.jpg,.png,.tiff"
                   style={{ marginBottom: '12px' }}
                 />
                 {uploadingFile && <div className="note">Uploading file...</div>}
-                {agentFiles.some(f => !f.is_processed || !f.is_embedded) && (
-                  <div className="note" style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '8px' }}>
-                    ⏳ Auto-refreshing every 10 seconds until processing completes...
+                
+                {!isEdit && pendingFiles.length > 0 && (
+                  <div className="note" style={{ marginBottom: '12px', padding: '8px', backgroundColor: 'var(--bg)', borderRadius: '4px', fontSize: '12px' }}>
+                    💡 {pendingFiles.length} file(s) selected. They will be uploaded automatically when you save the agent.
                   </div>
                 )}
-                
-                {agentFiles.length > 0 ? (
+
+                {!isEdit && pendingFiles.length > 0 && (
                   <div style={{ marginTop: '12px' }}>
-                    {agentFiles.map((file) => (
+                    {pendingFiles.map((file, index) => (
                       <div
-                        key={file.id}
+                        key={index}
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -727,47 +784,105 @@ export default function AgentFormPage() {
                       >
                         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                           <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '4px', wordBreak: 'break-word' }}>
-                            {file.original_name}
+                            {file.name}
                           </div>
                           <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                             {file.size ? `${(file.size / 1024).toFixed(2)} KB` : ''}
-                            {file.is_processed && file.is_embedded && (
-                              <span style={{ color: 'var(--success)', marginLeft: '8px' }}>✓ Processed & Embedded</span>
-                            )}
-                            {file.is_processed && !file.is_embedded && (
-                              <span style={{ color: 'var(--warning)', marginLeft: '8px' }}>⏳ Processing...</span>
-                            )}
-                            {!file.is_processed && (
-                              <span style={{ color: 'var(--text-secondary)', marginLeft: '8px' }}>Pending...</span>
-                            )}
+                            <span style={{ color: 'var(--text-secondary)', marginLeft: '8px' }}>⏳ Will upload after save</span>
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                           <button
                             type="button"
-                            onClick={() => handleFileView(file.id)}
-                            className="btn btn-primary"
-                            style={{ whiteSpace: 'nowrap' }}
-                            title="View this file"
-                          >
-                            View
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleFileDelete(file.id)}
+                            onClick={() => removePendingFile(index)}
                             className="btn btn-outline"
                             style={{ whiteSpace: 'nowrap' }}
-                            title="Delete this file"
+                            title="Remove this file"
                           >
-                            Delete
+                            Remove
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
-                ) : (
+                )}
+
+                {isEdit && (
+                  <>
+                    {agentFiles.some(f => !f.is_processed || !f.is_embedded) && (
+                      <div className="note" style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '8px' }}>
+                        ⏳ Auto-refreshing every 10 seconds until processing completes...
+                      </div>
+                    )}
+                    
+                    {agentFiles.length > 0 ? (
+                      <div style={{ marginTop: '12px' }}>
+                        {agentFiles.map((file) => (
+                          <div
+                            key={file.id}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '12px',
+                              marginBottom: '8px',
+                              backgroundColor: 'var(--bg)',
+                              borderRadius: '6px',
+                              border: '1px solid var(--border)',
+                              gap: '12px',
+                            }}
+                          >
+                            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                              <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '4px', wordBreak: 'break-word' }}>
+                                {file.original_name}
+                              </div>
+                              <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                {file.size ? `${(file.size / 1024).toFixed(2)} KB` : ''}
+                                {file.is_processed && file.is_embedded && (
+                                  <span style={{ color: 'var(--success)', marginLeft: '8px' }}>✓ Processed & Embedded</span>
+                                )}
+                                {file.is_processed && !file.is_embedded && (
+                                  <span style={{ color: 'var(--warning)', marginLeft: '8px' }}>⏳ Processing...</span>
+                                )}
+                                {!file.is_processed && (
+                                  <span style={{ color: 'var(--text-secondary)', marginLeft: '8px' }}>Pending...</span>
+                                )}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                              <button
+                                type="button"
+                                onClick={() => handleFileView(file.id)}
+                                className="btn btn-primary"
+                                style={{ whiteSpace: 'nowrap' }}
+                                title="View this file"
+                              >
+                                View
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleFileDelete(file.id)}
+                                className="btn btn-outline"
+                                style={{ whiteSpace: 'nowrap' }}
+                                title="Delete this file"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="note" style={{ marginTop: '8px' }}>
+                        No files uploaded yet. Upload files that will be available to all chats using this agent.
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {!isEdit && pendingFiles.length === 0 && (
                   <div className="note" style={{ marginTop: '8px' }}>
-                    No files uploaded yet. Upload files that will be available to all chats using this agent.
+                    Select files to upload. They will be available to all chats using this agent after you save.
                   </div>
                 )}
               </div>
