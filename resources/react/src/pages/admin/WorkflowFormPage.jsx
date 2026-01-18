@@ -178,34 +178,73 @@ export default function WorkflowFormPage() {
             rows="2"
           />
 
-          <div className="field-label">Steps in chain (one per line)</div>
-          <textarea
-            value={selectedAgents
-              .map((agentId, index) => {
+          <div className="field-label">Agent Sequence (drag to reorder)</div>
+          {selectedAgents.length === 0 ? (
+            <div className="note" style={{ padding: '12px', background: '#f9fafb', borderRadius: '4px' }}>
+              No agents in sequence. Add agents using the dropdown below.
+            </div>
+          ) : (
+            <div style={{ border: '1px solid #e5e7eb', borderRadius: '4px', padding: '8px' }}>
+              {selectedAgents.map((agentId, index) => {
                 const agent = agents.find((a) => a.id === agentId);
-                return `${index + 1}. ${agent?.name || 'Unknown Agent'}`;
-              })
-              .join('\n')}
-            onChange={(e) => {
-              // Parse textarea input to update sequence
-              const lines = e.target.value.split('\n').filter((line) => line.trim());
-              const newSequence = lines.map((line) => {
-                const match = line.match(/\d+\.\s*(.+)/);
-                if (match) {
-                  const agentName = match[1].trim();
-                  const agent = agents.find((a) => a.name === agentName);
-                  return agent?.id;
-                }
-                return null;
-              }).filter((id) => id !== null);
-              setSelectedAgents(newSequence);
-            }}
-            className="input"
-            rows="6"
-            placeholder="1. Agent Name 1&#10;2. Agent Name 2&#10;3. Agent Name 3"
-          />
-          <div className="note">
-            Example: Agent 1 feeds into Agents 2 & 3; order defines sequence when "Run full workflow" is used.
+                return (
+                  <div
+                    key={agentId}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px',
+                      background: index % 2 === 0 ? '#f9fafb' : 'white',
+                      borderRadius: '4px',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    <span style={{ color: '#6b7280', fontSize: '12px', minWidth: '24px' }}>
+                      {index + 1}.
+                    </span>
+                    <span style={{ flex: 1, fontWeight: 500 }}>{agent?.name || 'Unknown Agent'}</span>
+                    <button
+                      type="button"
+                      onClick={() => moveAgent(index, 'up')}
+                      disabled={index === 0}
+                      className="btn btn-sm btn-outline"
+                      style={{
+                        fontSize: '10px',
+                        padding: '2px 6px',
+                        opacity: index === 0 ? 0.5 : 1,
+                      }}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveAgent(index, 'down')}
+                      disabled={index === selectedAgents.length - 1}
+                      className="btn btn-sm btn-outline"
+                      style={{
+                        fontSize: '10px',
+                        padding: '2px 6px',
+                        opacity: index === selectedAgents.length - 1 ? 0.5 : 1,
+                      }}
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeAgentFromSequence(index)}
+                      className="btn btn-sm btn-outline"
+                      style={{ fontSize: '10px', padding: '2px 6px', color: '#ef4444' }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div className="note" style={{ marginTop: '8px' }}>
+            Order defines execution sequence when "Run full workflow" is used. Each agent receives output from the previous agent.
           </div>
 
           {/* Add Agent Dropdown */}

@@ -19,11 +19,18 @@ class WorkflowController extends Controller
 
     public function indexAll(Request $request): JsonResponse
     {
+        // For admin, show all workflows (not just active)
         $workflows = AgentWorkflow::with('suite')
-            ->active()
             ->get();
 
         return response()->json($workflows);
+    }
+
+    public function show(AgentWorkflow $workflow): JsonResponse
+    {
+        $workflow->load('suite');
+        
+        return response()->json($workflow);
     }
 
     public function store(Request $request, Suite $suite): JsonResponse

@@ -58,6 +58,7 @@ export default function WorkflowsPage() {
               <th>Suite</th>
               <th>Steps</th>
               <th>Enabled</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -86,10 +87,49 @@ export default function WorkflowsPage() {
                 <td>
                   <span
                     className={`toggle ${workflow.is_active ? 'on' : ''}`}
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.stopPropagation();
+                      try {
+                        await axios.put(`/api/workflows/${workflow.id}`, {
+                          is_active: !workflow.is_active,
+                        });
+                        fetchWorkflows();
+                      } catch (error) {
+                        console.error('Failed to toggle workflow:', error);
+                        alert('Failed to update workflow status');
+                      }
                     }}
                   ></span>
+                </td>
+                <td>
+                  <button
+                    className="btn btn-sm btn-outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/admin/workflows/${workflow.id}/edit`);
+                    }}
+                    style={{ fontSize: '11px', padding: '4px 8px' }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (confirm('Are you sure you want to delete this workflow?')) {
+                        try {
+                          await axios.delete(`/api/workflows/${workflow.id}`);
+                          fetchWorkflows();
+                        } catch (error) {
+                          console.error('Failed to delete workflow:', error);
+                          alert('Failed to delete workflow');
+                        }
+                      }
+                    }}
+                    style={{ fontSize: '11px', padding: '4px 8px', marginLeft: '4px', color: '#ef4444' }}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
