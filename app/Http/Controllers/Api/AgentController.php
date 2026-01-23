@@ -26,6 +26,14 @@ class AgentController extends Controller
             })
             ->get();
 
+        // Add can_delete and days_remaining info for each agent
+        $agents->each(function ($agent) {
+            $agent->can_delete = $agent->canBeDeleted();
+            if ($agent->is_active && !$agent->can_delete) {
+                $agent->days_remaining = max(0, 60 - $agent->created_at->diffInDays(now()));
+            }
+        });
+
         return response()->json($agents);
     }
 
@@ -154,11 +162,36 @@ class AgentController extends Controller
         return response()->json($agent);
     }
 
+    public function archive(Request $request, Agent $agent): JsonResponse
+    {
+        if ($agent->isArchived()) {
+            return response()->json(['message' => 'Agent is already archived'], 400);
+        }
+
+        $agent->update([
+            'archived_at' => now(),
+            'is_active' => false,
+        ]);
+
+        return response()->json(['message' => 'Agent archived successfully', 'agent' => $agent->fresh()]);
+    }
+
     public function destroy(Agent $agent): JsonResponse
     {
+        // Check if agent can be deleted
+        if (!$agent->canBeDeleted()) {
+            $daysRemaining = 60 - $agent->created_at->diffInDays(now());
+            return response()->json([
+                'error' => 'Cannot delete active agent',
+                'message' => "Active agents can only be deleted after 60 days. {$daysRemaining} days remaining.",
+                'can_delete' => false,
+                'days_remaining' => $daysRemaining,
+            ], 403);
+        }
+
         $agent->delete();
 
-        return response()->json(['message' => 'Agent deleted']);
+        return response()->json(['message' => 'Agent deleted successfully']);
     }
 
     public function getFiles(Agent $agent): JsonResponse

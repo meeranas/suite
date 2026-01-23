@@ -79,12 +79,18 @@ export default function AgentsPage() {
               <th>Model</th>
               <th>Sources</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {agents.map((agent) => {
               const badges = getFeatureBadges(agent);
               const suite = suites.find((s) => s.id === agent.suite_id);
+              const isActive = agent.is_active;
+              const canDelete = !isActive || (isActive && new Date(agent.created_at).getTime() + 60 * 24 * 60 * 60 * 1000 < Date.now());
+              const daysSinceCreation = Math.floor((Date.now() - new Date(agent.created_at).getTime()) / (1000 * 60 * 60 * 24));
+              const daysRemaining = isActive ? Math.max(0, 60 - daysSinceCreation) : 0;
+
               return (
                 <tr
                   key={agent.id}
@@ -123,12 +129,66 @@ export default function AgentsPage() {
                   </td>
                   <td>
                     <span
-                      className={`toggle ${agent.is_active ? 'on' : ''}`}
-                      onClick={(e) => {
+                      className={`toggle ${isActive ? 'on' : ''}`}
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        // Toggle status
+                        try {
+                          await axios.put(`/api/agents/${agent.id}`, {
+                            is_active: !isActive,
+                          });
+                          fetchData();
+                        } catch (error) {
+                          console.error('Failed to toggle agent:', error);
+                          alert('Failed to update agent status');
+                        }
                       }}
                     ></span>
+                  </td>
+                  <td>
+                    {canDelete ? (
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
+                            try {
+                              await axios.delete(`/api/agents/${agent.id}`);
+                              fetchData();
+                            } catch (error) {
+                              console.error('Failed to delete agent:', error);
+                              alert(error.response?.data?.message || 'Failed to delete agent');
+                            }
+                          }
+                        }}
+                        style={{ fontSize: '11px', padding: '4px 8px', color: '#ef4444' }}
+                      >
+                        Delete
+                      </button>
+                    ) : (
+                      <div style={{ fontSize: '10px', color: '#6b7280' }}>
+                        {daysRemaining > 0 ? `${daysRemaining} days` : 'Can delete'}
+                      </div>
+                    )}
+                    {!agent.archived_at && (
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (confirm('Archive this agent? It will be deactivated and hidden from users.')) {
+                            try {
+                              await axios.post(`/api/agents/${agent.id}/archive`);
+                              fetchData();
+                            } catch (error) {
+                              console.error('Failed to archive agent:', error);
+                              alert(error.response?.data?.message || 'Failed to archive agent');
+                            }
+                          }
+                        }}
+                        style={{ fontSize: '11px', padding: '4px 8px', marginLeft: '4px' }}
+                      >
+                        Archive
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

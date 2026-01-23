@@ -84,23 +84,89 @@ export default function SuitesPage() {
               <th>Description</th>
               <th>Agents</th>
               <th>Enabled</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {suites.map((suite) => (
-              <tr key={suite.id}>
-                <td style={{ fontWeight: 500 }}>{suite.name}</td>
-                <td style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  {suite.description || '-'}
-                </td>
-                <td>{suite.agents?.length || 0}</td>
-                <td>
-                  <span
-                    className={`toggle ${suite.status === 'active' ? 'on' : ''}`}
-                  ></span>
-                </td>
-              </tr>
-            ))}
+            {suites.map((suite) => {
+              const isActive = suite.status === 'active';
+              const canDelete = !isActive || (isActive && new Date(suite.created_at).getTime() + 60 * 24 * 60 * 60 * 1000 < Date.now());
+              const daysSinceCreation = Math.floor((Date.now() - new Date(suite.created_at).getTime()) / (1000 * 60 * 60 * 24));
+              const daysRemaining = isActive ? Math.max(0, 60 - daysSinceCreation) : 0;
+
+              return (
+                <tr key={suite.id}>
+                  <td style={{ fontWeight: 500 }}>{suite.name}</td>
+                  <td style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    {suite.description || '-'}
+                  </td>
+                  <td>{suite.agents?.length || 0}</td>
+                  <td>
+                    <span
+                      className={`toggle ${isActive ? 'on' : ''}`}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await axios.put(`/api/suites/${suite.id}`, {
+                            status: isActive ? 'hidden' : 'active',
+                          });
+                          fetchSuites();
+                        } catch (error) {
+                          console.error('Failed to toggle suite:', error);
+                          alert('Failed to update suite status');
+                        }
+                      }}
+                    ></span>
+                  </td>
+                  <td>
+                    {canDelete ? (
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (confirm('Are you sure you want to delete this suite? This action cannot be undone.')) {
+                            try {
+                              await axios.delete(`/api/suites/${suite.id}`);
+                              fetchSuites();
+                            } catch (error) {
+                              console.error('Failed to delete suite:', error);
+                              alert(error.response?.data?.message || 'Failed to delete suite');
+                            }
+                          }
+                        }}
+                        style={{ fontSize: '11px', padding: '4px 8px', color: '#ef4444' }}
+                      >
+                        Delete
+                      </button>
+                    ) : (
+                      <div style={{ fontSize: '10px', color: '#6b7280' }}>
+                        {daysRemaining > 0 ? `${daysRemaining} days` : 'Can delete'}
+                      </div>
+                    )}
+                    {!suite.archived_at && (
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (confirm('Archive this suite? It will be hidden from users.')) {
+                            try {
+                              await axios.post(`/api/suites/${suite.id}/archive`);
+                              fetchSuites();
+                            } catch (error) {
+                              console.error('Failed to archive suite:', error);
+                              alert(error.response?.data?.message || 'Failed to archive suite');
+                            }
+                          }
+                        }}
+                        style={{ fontSize: '11px', padding: '4px 8px', marginLeft: '4px' }}
+                      >
+                        Archive
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </section>

@@ -29,6 +29,7 @@ class Agent extends Model
         'order',
         'is_active',
         'metadata',
+        'archived_at',
     ];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class Agent extends Model
         'enable_external_apis' => 'boolean',
         'is_active' => 'boolean',
         'metadata' => 'array',
+        'archived_at' => 'datetime',
     ];
 
     public function suite(): BelongsTo
@@ -70,6 +72,30 @@ class Agent extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('order');
+    }
+
+    /**
+     * Check if agent can be deleted
+     * - If not active, can delete immediately
+     * - If active, can only delete after 60 days from creation
+     */
+    public function canBeDeleted(): bool
+    {
+        // If not active, can delete immediately
+        if (!$this->is_active) {
+            return true;
+        }
+
+        // If active, check if 60 days have passed
+        return $this->created_at->copy()->addDays(60)->isPast();
+    }
+
+    /**
+     * Check if agent is archived
+     */
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
     }
 }
 

@@ -30,11 +30,13 @@ Route::middleware(['api', 'jwt.auth'])->group(function () {
 
     // Suites
     Route::apiResource('suites', SuiteController::class);
+    Route::post('suites/{suite}/archive', [SuiteController::class, 'archive']);
 
     // Agents
     Route::apiResource('suites.agents', AgentController::class)->shallow();
     Route::get('agents', [AgentController::class, 'indexAll']);
     Route::get('agents/{agent}/files', [AgentController::class, 'getFiles']);
+    Route::post('agents/{agent}/archive', [AgentController::class, 'archive']);
 
     // Workflows
     Route::apiResource('suites.workflows', WorkflowController::class)->shallow();

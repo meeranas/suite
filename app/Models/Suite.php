@@ -20,11 +20,13 @@ class Suite extends Model
         'subscription_tiers',
         'metadata',
         'created_by',
+        'archived_at',
     ];
 
     protected $casts = [
         'subscription_tiers' => 'array',
         'metadata' => 'array',
+        'archived_at' => 'datetime',
     ];
 
     public function createdBy(): BelongsTo
@@ -63,6 +65,30 @@ class Suite extends Model
             $q->whereJsonContains('subscription_tiers', $tier)
                 ->orWhereNull('subscription_tiers');
         });
+    }
+
+    /**
+     * Check if suite can be deleted
+     * - If not active (status != 'active'), can delete immediately
+     * - If active, can only delete after 60 days from creation
+     */
+    public function canBeDeleted(): bool
+    {
+        // If not active, can delete immediately
+        if ($this->status !== 'active') {
+            return true;
+        }
+
+        // If active, check if 60 days have passed
+        return $this->created_at->copy()->addDays(60)->isPast();
+    }
+
+    /**
+     * Check if suite is archived
+     */
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
     }
 }
 

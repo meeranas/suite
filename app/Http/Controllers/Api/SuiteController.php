@@ -35,6 +35,14 @@ class SuiteController extends Controller
             }
         ])->get();
 
+        // Add can_delete and days_remaining info for each suite
+        $suites->each(function ($suite) {
+            $suite->can_delete = $suite->canBeDeleted();
+            if ($suite->status === 'active' && !$suite->can_delete) {
+                $suite->days_remaining = max(0, 60 - $suite->created_at->diffInDays(now()));
+            }
+        });
+
         return response()->json($suites);
     }
 
@@ -80,11 +88,36 @@ class SuiteController extends Controller
         return response()->json($suite);
     }
 
+    public function archive(Request $request, Suite $suite): JsonResponse
+    {
+        if ($suite->isArchived()) {
+            return response()->json(['message' => 'Suite is already archived'], 400);
+        }
+
+        $suite->update([
+            'archived_at' => now(),
+            'status' => 'archived',
+        ]);
+
+        return response()->json(['message' => 'Suite archived successfully', 'suite' => $suite->fresh()]);
+    }
+
     public function destroy(Suite $suite): JsonResponse
     {
+        // Check if suite can be deleted
+        if (!$suite->canBeDeleted()) {
+            $daysRemaining = 60 - $suite->created_at->diffInDays(now());
+            return response()->json([
+                'error' => 'Cannot delete active suite',
+                'message' => "Active suites can only be deleted after 60 days. {$daysRemaining} days remaining.",
+                'can_delete' => false,
+                'days_remaining' => $daysRemaining,
+            ], 403);
+        }
+
         $suite->delete();
 
-        return response()->json(['message' => 'Suite deleted']);
+        return response()->json(['message' => 'Suite deleted successfully']);
     }
 }
 
