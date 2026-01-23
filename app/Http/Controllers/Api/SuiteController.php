@@ -19,14 +19,15 @@ class SuiteController extends Controller
         $query = Suite::query();
 
         // Filter by subscription tier
-
         if (!$user->hasRole('admin') && $tier) {
             $query->forTier($tier);
         }
 
-        // Admin can see all, users see only active
+        // For non-admin users: only show active, non-archived suites
+        // Admin can see all (including archived and hidden)
         if (!$user->hasRole('admin')) {
-            $query->active();
+            $query->active()
+                ->notArchived(); // Exclude archived suites
         }
 
         $suites = $query->with([

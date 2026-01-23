@@ -59,11 +59,25 @@ class Suite extends Model
         return $query->where('status', 'active');
     }
 
+    /**
+     * Scope to exclude archived suites
+     */
+    public function scopeNotArchived($query)
+    {
+        return $query->whereNull('archived_at');
+    }
+
     public function scopeForTier($query, string $tier)
     {
         return $query->where(function ($q) use ($tier) {
+            // Suite is accessible if:
+            // 1. The tier is in the subscription_tiers array
+            // 2. subscription_tiers is null (accessible to all)
+            // 3. subscription_tiers is an empty array [] (accessible to all)
             $q->whereJsonContains('subscription_tiers', $tier)
-                ->orWhereNull('subscription_tiers');
+                ->orWhereNull('subscription_tiers')
+                ->orWhereRaw("subscription_tiers::text = '[]'") // Empty array means accessible to all tiers
+                ->orWhereRaw("subscription_tiers::text = 'null'"); // Also handle JSON null
         });
     }
 
