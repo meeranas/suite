@@ -8,6 +8,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+
+use Illuminate\Validation\ValidationException;
 
 class SuiteController extends Controller
 {
@@ -49,9 +52,23 @@ class SuiteController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $exists = DB::table('suites')
+            ->whereRaw('LOWER(name) = ?', [strtolower($request->name)])
+            ->exists();
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'name' => 'The name has already been taken.',
+            ]);
+        }
+        //dd(strtolower($request->name));
         $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+            'description' => 'nullable|string|max:255',
             'status' => ['nullable', Rule::in(['active', 'hidden', 'archived'])],
             'subscription_tiers' => 'nullable|array',
         ]);

@@ -6,6 +6,7 @@ export default function SuitesPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [tiers, setTiers] = useState([]);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -43,6 +44,8 @@ export default function SuitesPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({}); // Clear previous errors
+
     try {
       await axios.post('/api/suites', formData);
       setShowModal(false);
@@ -50,6 +53,14 @@ export default function SuitesPage() {
       fetchSuites();
     } catch (error) {
       console.error('Failed to create suite:', error);
+
+      // Handle validation errors (422)
+      if (error.response?.status === 422) {
+        const validationErrors = error.response?.data?.errors || {};
+        setErrors(validationErrors);
+      } else {
+        alert('Failed to create suite. Please try again.');
+      }
     }
   };
 
@@ -199,12 +210,22 @@ export default function SuitesPage() {
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  // Clear error when user starts typing
+                  if (errors.name) {
+                    setErrors({ ...errors, name: undefined });
+                  }
+                }}
                 className="input"
+                style={errors.name ? { borderColor: '#ef4444' } : {}}
                 required
               />
+              {errors.name && (
+                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                  {errors.name[0]}
+                </div>
+              )}
               <div className="field-label">Description</div>
               <textarea
                 value={formData.description}
