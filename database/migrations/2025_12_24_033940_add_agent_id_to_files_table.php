@@ -11,7 +11,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('files', function (Blueprint $table) {
-            //
+            $table->foreignId('agent_id')->nullable()->after('chat_id')->constrained('agents')->nullOnDelete();
+            $table->index('agent_id');
         });
     }
 
@@ -21,7 +22,9 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('files', function (Blueprint $table) {
-            //
+            $table->dropForeign(['agent_id']);
+            $table->dropIndex(['agent_id']);
+            $table->dropColumn('agent_id');
         });
     }
 };

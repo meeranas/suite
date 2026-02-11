@@ -11,7 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('external_api_configs', function (Blueprint $table) {
-            //
+            $table->text('encrypted_api_key')->nullable()->change();
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('external_api_configs', function (Blueprint $table) {
-            //
+            $table->text('encrypted_api_key')->nullable(false)->change();
         });
     }
 };
